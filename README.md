@@ -9,95 +9,98 @@
 
 No deep learning. No GPU. Just pure geometry and smart heuristics.
 
-## Demo: Real-World Performance
+🧠 Overview
 
-![Fastener Detection Demo](fastener_detection_result.png)
+This project performs automated fastener recognition from images using OpenCV’s contour features.
+It can be deployed for industrial sorting, quality control, or inventory automation — working efficiently even under real-world conditions like cluttered surfaces or uneven lighting.
 
-**Results Summary:**
-Fastener Detection Summary:
-Detected fasteners:
-Screw   : 78
-Bolt    : 32
+🎬 Demo: Real-World Detection
 
-### How It Works
-- **Left side**: Raw photo of mixed industrial fasteners on a wooden surface.
-- **Right side**: System output with **color-coded contours** and **automatic classification**.
-- Each fastener is outlined and analyzed using **shape features**:
-  - Circularity
-  - Aspect ratio
-  - Eccentricity
-  - Convexity
-  - Hole count (for nuts/washers)
-  - Vertex count (hex nuts)
-  - Hu moments (scale/rotation invariant)
-  - Freeman chain code → rotation-invariant shape number
-- **142 objects detected** in a cluttered real-world image — **zero false positives**, **1 unknown** (edge case).
-- Runs in **< 2 seconds** on CPU.
+Detection Summary:
 
-  ## Code Explanation
-The system is implemented in a modular, object-oriented design using the `FastenerRecognizer` class. Below is a step-by-step breakdown of the core pipeline:
-
-### 1. **Image Preprocessing**
-```python
-preprocess_image(image)
-Converts to grayscale
-Applies Gaussian blur to reduce noise
-Uses adaptive thresholding (ADAPTIVE_THRESH_GAUSSIAN_C) for uneven lighting
-Performs morphological opening + dilation to remove small noise and close gaps
-Contour Detection
-pythonextract_contours(preprocessed_image)
-
-Finds external contours using RETR_EXTERNAL
-Filters out small noise (area > 100)
-Sorts by area (largest first) for priority processing
+✅ 142 fasteners detected
+✅ Zero false positives
+✅ 1 unknown edge case
 
 
-3. Feature Extraction
-pythonextract_fastener_features(contour, image)
-For each contour, computes 11+ shape descriptors:
+🔍 How It Works
+Step 1. Image Preprocessing
+The input image is converted to grayscale and denoised using Gaussian blur.
+Then, adaptive thresholding handles variable lighting, followed by morphological opening and dilation to enhance edges and remove background noise.
 
-FeaturePurposecircularityDistinguishes circles (washers/rivets)aspect_ratioElongated = screw/boltrect_fill_ratioHow well object fills bounding boxcircle_fill_ratioFilled vs hollow (washers)eccentricityElliptical vs circularconvexityConvex hull defectshole_countDetects nuts & washersvertex_countHex nuts (5–8 sides)hu_momentsScale/rotation invariantchain_codeFreeman 8-direction code → rotation-invariant shape number
+Step 2. Contour Detection
+Contours are extracted using cv2.RETR_EXTERNAL.
+Small artifacts are filtered by area, and major contours are sorted by size for prioritized analysis.
 
-4. Classification
-pythonclassify_fastener(features)
-Two modes:
-A. Heuristic Classifier (Default)
-pythonif circularity > 0.8 and hole_count > 0 → Washer
-elif vertex_count in [5,6,7,8] and hole_count > 0 → Nut
-elif aspect_ratio > 2.5 → Screw
-elif aspect_ratio > 1.5 → Bolt
-elif circularity > 0.7 → Rivet
-else → Unknown
-B. Trainable KMeans Classifier
-pythontrain_fastener_classifier(training_data)
-Builds class centroids from labeled feature vectors
-Predicts via nearest centroid distance
+Step 3. Feature Extraction
+For each detected contour, the system computes 11+ geometric descriptors, including:
+Circularity, aspect ratio, and convexity
+Eccentricity and fill ratios
+Vertex and hole count (for nuts/washers)
+Hu moments (scale + rotation invariant)
+Freeman chain code → rotation-invariant shape numbers
+These descriptors form a compact shape signature for each fastener.
 
-5. Visualization
-pythonvisualize_results(image, results)
-Draws color-coded contours:
-Screw: Red
-Bolt: Green
-Nut: Blue
-Washer: Yellow
-Rivet: Magenta
-Unknown: Gray
-Labels each object with fastener type at centroid
-Synthetic Data & Batch Processing
-create_training_examples() → generates rotated/scaled/noisy labeled images
-process_directory() → runs on all images in a folder
+Step 4. Classification
+Two classification modes are available:
 
-> **No training required** — works out-of-the-box with heuristic rules.  
-> Can be improved with `train_fastener_classifier()` using labeled data.
-**Industrial use case ready**: Automated sorting, inventory, quality control.
+A. Heuristic Mode (Default) – Rule-based
+Uses logical conditions on shape metrics:
+High circularity + hole → Washer
+6–8 vertices + hole → Nut
+Elongated shape → Screw or Bolt
+Highly convex circle → Rivet
 
-## Features
+B. Optional ML Mode – KMeans Classifier
+Clusters feature vectors and predicts class labels by nearest centroid distance, improving accuracy with minimal training.
 
-- **Robust preprocessing**: Adaptive thresholding + morphological operations
-- **Rich shape descriptors** for accurate classification
-- **Two classification modes**:
-  1. **Heuristic rules** – zero training, instant results
-  2. **KMeans clustering** – train on labeled data for better accuracy
-- **Synthetic data generator** – create unlimited rotated/scaled/noisy samples
-- **Batch processing** – analyze entire folders automatically
-- **Interactive visualization** – color-coded contours + labels
+Step 5. Visualization
+Each detected fastener is outlined and color-coded:
+Fastener	Color
+Screw	🔴 Red
+Bolt	🟢 Green
+Nut	🔵 Blue
+Washer	🟡 Yellow
+Rivet	🟣 Magenta
+Unknown	⚪ Gray
+
+Output images include labeled centroids and clear visual segregation.
+
+🧩 Code Workflow Summary
+Stage	Description
+Input & Setup	Imports OpenCV, NumPy; loads image or directory of images.
+Preprocessing	Grayscale → Blur → Adaptive Threshold → Morphology.
+Contour Extraction	Finds and filters external contours by area.
+Feature Computation	Calculates 11+ shape descriptors for each contour.
+Classification Logic	Applies heuristic or ML classifier for labeling.
+Visualization & Output	Annotates contours and exports classified images.
+
+The code is fully modular, built around a FastenerRecognizer class for easy reuse in industrial workflows or integration with conveyor systems.
+
+⚙️ Features
+
+✅ Robust preprocessing — handles noise, clutter, uneven illumination
+
+✅ Rich shape descriptors — high discriminability without deep learning
+
+✅ Dual classification — heuristic or trainable ML-based
+
+✅ Synthetic data generator — for rotation/scale-invariant training samples
+
+✅ Batch processing — analyze entire folders automatically
+
+✅ Instant results — runs under 2 seconds on standard CPU
+
+🧪 Industrial Use Cases
+
+Automated fastener sorting lines
+
+Quality inspection in manufacturing plants
+
+Inventory digitization in supply chain management
+
+On-device edge CV systems with Raspberry Pi or Jetson Nano
+
+🪪 License
+
+This project is released under the MIT License — free for academic and commercial use.
