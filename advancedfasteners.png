@@ -1,4 +1,0 @@
-- Left: Raw photo of mixed industrial fasteners on a wooden surface.
-- Right: System output with **color-coded contours** and **automatic classification**.
-- Each fastener is outlined and analyzed using shape features (circularity, aspect ratio, hole count, etc.).
-- 142 objects detected in a single cluttered image — zero false positives, 1 unknown (edge case).
