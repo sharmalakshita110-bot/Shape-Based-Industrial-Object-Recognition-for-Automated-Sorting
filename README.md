@@ -92,7 +92,6 @@ The code is fully modular, built around a FastenerRecognizer class for easy reus
 ✅ Instant results — runs under 2 seconds on standard CPU
 
 🧪 Industrial Use Cases
-
 Automated fastener sorting lines
 
 Quality inspection in manufacturing plants
